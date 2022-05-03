@@ -6,7 +6,8 @@ class Assets extends Component {
     state = {
     contract : this.props.contract,
     numOfProperties: 0,
-    assets :  []
+    assets :  [],
+    accounts: this.props.accounts
     }
 
     componentDidMount = async () => {
@@ -21,12 +22,12 @@ class Assets extends Component {
         for (let i = 1; i <= this.state.numOfProperties; i++) {
             querries.push(this.getAsset(i))
         }
-        Promise.all(querries).then(val => {
-            console.log(val[0]["propertyID"]);
-            this.setState({assets: val});
-            console.table(val);
+            Promise.all(querries).then(val => {
+                this.setState({assets: val});
+            console.log(val);
         })
-
+        
+    
         
     }
 
@@ -35,13 +36,11 @@ class Assets extends Component {
     }
 
     render() { 
-        return(
-            
-            
+        return( 
           <div className="container">
 
-                {this.state.assets.map((asset,index) => (
-                    <Asset key={asset.propertyID} asset={asset} />
+                {this.state.assets.length >=1 && this.state.assets.map((asset,index) => (
+                    <Asset constract={this.state.contract} accounts={this.state.accounts} key={asset.id} asset={asset} />
                     
                     )) }
             </div>

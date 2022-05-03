@@ -3,16 +3,25 @@ const express = require("express");
 const Property = require("./../models/property");
 const router = express.Router();
 const multer = require("multer");
-const { path } = require("../app");
+const path = require("path");
 
-const storage = multer.diskStorage({
-  destination: (req, res, cb) => {
-    cb(null, "images");
-  },
-  filename: (req, file, cb) => {
-    cb(null, req.params.propertyId + path.extname(file.originalname));
-  },
+const sharp = require("sharp");
+
+const multerStorage = multer.memoryStorage();
+
+const upload = multer({
+  storage: multerStorage,
 });
+
+const uploadImage = upload.fields([{ name: "image", maxCount: 1 }]);
+const resizeImages = async (req, res, next) => {
+  const filename = `${req.params.propertyId}.jpeg`;
+  await sharp(req.files.image[0].buffer)
+    .toFormat("jpeg")
+    .toFile(`public/images/${filename}`);
+
+  res.json("saved");
+};
 
 const verifyProperty = async (req, res) => {
   let isVerified = true;
@@ -36,6 +45,7 @@ const createProperty = async (req, res) => {
     pinCode: req.body.pinCode,
     propertyId: req.body.propertyId,
     image: "" + req.body.property + ".jpeg",
+    details: req.body.details,
   });
 
   try {
@@ -46,7 +56,16 @@ const createProperty = async (req, res) => {
   }
 };
 
+const getProperty = async (req, res) => {
+  const property = await Property.findOne({
+    propertyId: req.params.propertyId,
+  }).exec();
+  if (!property) return res.json("fail");
+  return res.json(property);
+};
+
 router.get("/verify-property", verifyProperty);
+router.get("/:propertyId", getProperty);
 router.post("/", createProperty);
-router.post("/upload/:propertyId");
+router.post("/upload/:propertyId", uploadImage, resizeImages);
 module.exports = router;

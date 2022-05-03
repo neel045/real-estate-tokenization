@@ -16,10 +16,12 @@ class AddAsset extends Component {
 
     addProperty = async (e) => {
         e.preventDefault();
-        console.log(this.state.account);
-        const mainPropertyOwner = await document.getElementById("property_owner").value;
+         const mainPropertyOwner = await document.getElementById("property_owner").value;
         const property_symbol = await document.getElementById("property_symbol").value;
         const property_id = await document.getElementById("property_id").value;
+        const total_supply = await document.getElementById("total-supply").value;
+        const rentPer30Day = await document.getElementById("rentPer30Day").value;
+        const rentLimitMonths = await document.getElementById("rent-limit-months").value;
         console.log(mainPropertyOwner,property_id,property_symbol);
 
         const ownerId = await axios.get("http://127.0.0.1:8000/api/v1/citizens",{retId: mainPropertyOwner});
@@ -29,7 +31,7 @@ class AddAsset extends Component {
         const isPropertyVerified = await axios.get("http://127.0.0.1:8000/api/v1/properties/verify-property",{ownerId: ownerId,propertyId: property_id});
 
         if(isPropertyVerified){
-            const res = await this.state.contract.methods.addProperty(property_id,property_symbol,mainPropertyOwner).send({from : this.state.account});
+            const res = await this.state.contract.methods.addProperty(property_id,property_symbol,mainPropertyOwner,total_supply,rentPer30Day,rentLimitMonths).send({from : this.state.account});
             console.log(res);
         }
 
@@ -41,6 +43,7 @@ class AddAsset extends Component {
     render() { 
         return(
             <div className="container px-4"> 
+            <h3 className="mt-3 pt-2">List Property</h3>
 
                 <form onSubmit={this.addProperty}>
                     <div className="mb-3">
@@ -54,6 +57,20 @@ class AddAsset extends Component {
                     <div className="mb-3">
                         <label htmlFor="property_id" className="form-label">property id</label>
                         <input type="text" className="form-control" id="property_id" required />
+                    </div>
+                    <div className="mb-3">
+                        <label htmlFor="total-supply" className="form-label">Total Supply of Tokens</label>
+                        <input type="text" className="form-control" id="total-supply" required />
+                    </div>
+
+                    <div className="mb-3">
+                        <label htmlFor="rentPer30Day" className="form-label">Rent of 30 days</label>
+                        <input type="text" className="form-control" id="rentPer30Day" required />
+                    </div>
+
+                    <div className="mb-3">
+                        <label htmlFor="rent-limit-months" className="form-label">Limit for advance payment of rent</label>
+                        <input type="text" className="form-control" id="rent-limit-months" required />
                     </div>
                     <button type="submit" className="btn btn-primary" onClick={this.addProperty} >Add Property</button>
                 </form>

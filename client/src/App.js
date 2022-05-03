@@ -5,6 +5,7 @@ import Navbar from "./components/Navbar";
 import { BrowserRouter as Router, Routes, Route } from "react-router-dom";
 import Assets from "./components/Assets";
 import AddAsset from "./components/AddAsset";
+import AssetDetails from "./components/AssetDetails";
 
 import "./App.css";
 import Signup from "./components/Signup";
@@ -45,17 +46,6 @@ class App extends Component {
     }
   };
 
-  runExample = async () => {
-    const { accounts, contract } = this.state;
-    // // Stores a given value, 5 by default.
-    // await contract.methods.set(5).send({ from: accounts[0] });
-    // // Get the value from the contract to prove it worked.
-    // const response = await contract.methods.get().call();
-    // // Update state with the result.
-    // this.setState({ storageValue: response });
-    // console.log(this.state);
-  };
-
   verifyAccount = async () => {
     const { accounts, contract } = this.state;
     let result = await contract.methods.isStakeholder(accounts[0]).call();
@@ -64,12 +54,15 @@ class App extends Component {
 
   render() {
     if (!this.state.web3) {
-      return <div>Loading Web3, accounts, and contract...</div>;
+      return <div className="loader"></div>;
     }
     return (
       <div className="App">
         <Router>
-          <Navbar accounts={this.state.accounts[0]} />
+          <Navbar
+            contract={this.state.contract}
+            account={this.state.accounts[0]}
+          />
           <Routes>
             <Route
               exact
@@ -84,9 +77,21 @@ class App extends Component {
                 ) : (
                   <Assets
                     contract={this.state.contract}
+                    accounts={this.state.accounts}
                     numOfProperties={this.state.numOfProperties}
                   />
                 )
+              }
+            />
+
+            <Route
+              exact
+              path="/assets/:id"
+              element={
+                <AssetDetails
+                  contract={this.state.contract}
+                  accounts={this.state.accounts}
+                />
               }
             />
 
@@ -102,8 +107,6 @@ class App extends Component {
             />
           </Routes>
         </Router>
-
-        {/* <h3>{this.state.numOfProperties}</h3> */}
       </div>
     );
   }

@@ -4,7 +4,7 @@ const router = express.Router();
 const Citizen = require("./../models/citizen");
 
 const verifyUser = async (req, res) => {
-  const isVerified = true;
+  let isVerified = true;
   const aadhar = req.params.aadhar;
   const citizen = await Citizen.findOne({ aadhar: aadhar }).exec();
   if (!citizen) {
