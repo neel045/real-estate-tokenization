@@ -9,18 +9,19 @@ class Navbar extends Component {
     }
 
     widrawFunds = async () => {
-      console.log("clicked");
+      // console.log("clicked");
 
-      let funds = await this.state.contract.mathods.revenues(this.state.account).call();
+      let funds = await this.state.contract.methods.revenues(this.state.account).call();
+      console.log(funds);
       if (funds == 0) 
         return alert("You don't have any money")      
       try {
         await this.state.contract.methods.withdraw().send({from: this.state.account});
         alert("Sucess");
       } catch (error) {
-        alert("something is wrong");
         console.log(error);
-        console.log();
+        alert("something is wrong");
+        // console.log();
         
       }
     }
@@ -28,19 +29,23 @@ class Navbar extends Component {
     
     payRent = async () => {
 
-      console.log("pay rent");
+      // console.log("pay rent");
       let propertyId = document.getElementById("propertyId-rent").value;
       let numOfMonths = document.getElementById("numOfMonths").value;
 
       // console.log(asset);
       try {
         let asset = await this.state.contract.methods.assets(propertyId).call();
-        console.log(asset.tenant);
+        // console.log(asset.tenant);
         if(asset.tenant != this.state.account) {
           alert("You are not tenant of this property");
         }
+        let numOfStakeholders = await this.state.contract.methods.numOfStakeholdersForProperty(asset.id).call();
         // console.log(asset.rentPer30Day);
-        await this.state.contract.methods.payRent(numOfMonths,propertyId).send({from: this.state.account,  value: asset.rentPer30Day * numOfMonths })
+        console.log(numOfStakeholders);
+        await this.state.contract.methods.payRent(numOfMonths,propertyId,numOfStakeholders).send({from: this.state.account,  value: (asset.rentPer30Day) * numOfMonths })
+        // await this.state.contract.methods.distributeRent(asset.id).send({from:this.state.account})
+        alert("Rent Paid")
       } catch (error) {
         console.log(error);
       }

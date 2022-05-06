@@ -22,6 +22,9 @@ const propertySchema = new mongoose.Schema({
   image: {
     type: String,
   },
+  details: {
+    type: String,
+  },
 });
 
 module.exports = mongoose.model("Property", propertySchema);

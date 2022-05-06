@@ -35,7 +35,7 @@ const verifyProperty = async (req, res) => {
   if (!property) {
     isVerified = false;
   }
-  res.json(isVerified);
+  return res.json(isVerified);
 };
 
 const createProperty = async (req, res) => {
@@ -44,7 +44,7 @@ const createProperty = async (req, res) => {
     ownerId: req.body.ownerId,
     pinCode: req.body.pinCode,
     propertyId: req.body.propertyId,
-    image: "" + req.body.property + ".jpeg",
+    image: "" + req.body.propertyId + ".jpeg",
     details: req.body.details,
   });
 

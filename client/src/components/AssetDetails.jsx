@@ -1,6 +1,4 @@
 import React, {Component} from "react"
-import { Link } from "react-router-dom";
-import Web3 from "web3";
 
 
 class AssetDetails extends Component {
@@ -57,14 +55,14 @@ class AssetDetails extends Component {
 
 
 
-        console.log(buyShareFrom,propertyId,numberOfsharesBuy);
+        // console.log(buyShareFrom,propertyId,numberOfsharesBuy);
 
         try {
 
             await this.state.contract.methods.buyShares(buyShareFrom,propertyId,numberOfsharesBuy).send({from : this.state.account , value: perSharePrice * numberOfsharesBuy });
             alert("process has been sucessful");
         } catch (error) {
-            console.log(error);
+            // console.log(error);
             alert("Something went wrong");
         }
 

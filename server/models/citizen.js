@@ -24,7 +24,6 @@ const citizenSchema = new mongoose.Schema({
   },
   retId: {
     type: String,
-    unique: true,
   },
   address: {
     type: String,

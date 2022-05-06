@@ -30,12 +30,12 @@ contract RealEstateTokenization {
     uint8 private decimals; // Decimals of our Shares. Has to be 0.
     uint8 public tax; // Can Preset Tax rate in constructor. To be change by government only.
     uint256 public blocksPer30Day;
+    uint256 public _accumulated; //store accumulated rent
 
     mapping(uint256 => Asset) public assets;
     address public gov = msg.sender;
     address[] public stakeholders;
-    uint256 public accumulated;
-    uint256 private _taxdeduct; // ammount of tax to be paid for incoming ether.
+
     mapping(uint256 => uint256) public mappingProperty; // propertyId => id in mapping
 
     mapping(address => uint256) public revenues;
@@ -51,6 +51,7 @@ contract RealEstateTokenization {
         tax = 8;
         stakeholders.push(gov);
         blocksPer30Day = (60 * 60 * 24 * 30) / avgBlockTime;
+        _accumulated = 0;
     }
 
     function addStakeholder(address _stakeholder) public {
@@ -103,11 +104,10 @@ contract RealEstateTokenization {
         a.symbol = _symbol;
         a.mainPropertyOwner = _mainPropertyOwner;
         a.totalSupply = _totalSupply;
-        a.shares[_mainPropertyOwner] = 100;
+        a.shares[_mainPropertyOwner] = _totalSupply;
         a.stakeholders.push(msg.sender);
         a.rentalLimitMonths = 11;
         a.rentalLimitBlocks = a.rentalLimitMonths * blocksPer30Day;
-        a.availableSupply = 0;
         a.rentPer30Day = _rentPer30Day;
         a.rentalLimitMonths = _rentalLimitMonths;
     }
@@ -125,6 +125,20 @@ contract RealEstateTokenization {
     }
 
     //property owner functions
+    function changeRent(uint256 _propertyID, uint256 _newRent) public {
+        Asset storage a = assets[_propertyID];
+        a.rentPer30Day = _newRent;
+    }
+
+    function numOfStakeholdersForProperty(uint256 _propertyID)
+        public
+        view
+        returns (uint256)
+    {
+        Asset storage a = assets[_propertyID];
+        return a.stakeholders.length;
+    }
+
     function offerShares(
         uint256 _propertyID,
         address _from,
@@ -228,7 +242,6 @@ contract RealEstateTokenization {
     }
 
     //tennet function
-
     function applyTenant(uint256 _propertyID) public {
         (bool _isStakeholder, ) = isStakeholder(msg.sender);
         require(_isStakeholder);
@@ -236,7 +249,11 @@ contract RealEstateTokenization {
         a.interstedTenant.push(msg.sender);
     }
 
-    function payRent(uint8 _months, uint256 _propertyID) public payable {
+    function payRent(
+        uint8 _months,
+        uint256 _propertyID,
+        uint256 _numOfShareholdersForProperty
+    ) public payable {
         Asset storage a = assets[_propertyID];
         uint256 _rentdue = _months * a.rentPer30Day;
         uint256 _additionalBlocks = _months * blocksPer30Day;
@@ -246,9 +263,22 @@ contract RealEstateTokenization {
                 block.number + a.rentalLimitBlocks
         );
 
-        _taxdeduct = (msg.value / a.totalSupply) * tax;
-        accumulated += (msg.value - _taxdeduct);
+        uint256 _taxdeduct = (msg.value / a.totalSupply) * tax;
+        _accumulated = (msg.value - _taxdeduct);
         revenues[gov] += _taxdeduct;
+
+        address _stakeholder;
+        uint256 _shares;
+        uint256 _etherToRecieve;
+        uint256 s = 0;
+
+        for (s = 0; s < _numOfShareholdersForProperty; s++) {
+            _stakeholder = a.stakeholders[s];
+            _shares = a.shares[_stakeholder];
+            _etherToRecieve = (_accumulated / (a.totalSupply)) * _shares;
+            revenues[_stakeholder] = revenues[_stakeholder] + _etherToRecieve;
+        }
+        _accumulated = 0;
 
         if (
             a.rentpaidUntill[a.tenant] == 0 && a.occupiedUntill < block.number
