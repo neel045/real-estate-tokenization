@@ -1,4 +1,4 @@
-# Project Title
+# Real Estate Tokenization
 
 it's web application that allows users to list their properties on our website and tokenize them. tokens/shares of that property will be able to sell/buy by the users. any user can rent a property.
 
